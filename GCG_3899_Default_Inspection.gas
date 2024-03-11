@@ -1,0 +1,97 @@
+Program.Sub.ScreenSU.Start
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.SetErrorHandler("Main_Err")
+F.Intrinsic.Control.ClearErrors
+'7/31/2015
+'Coded By BCC
+'Quote #6915
+V.Local.sError.Declare(String)
+
+F.ODBC.Connection!con.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass)
+
+F.Intrinsic.Control.If(V.Caller.Hook,=,10185,"AND",V.Caller.Switches,=,"N")
+	F.Intrinsic.Control.CallSub(Checkrequiresinspection)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.CallSub(Unload)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Main_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3899_Default_Inspection.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Unload)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.Main.End
+
+Program.Sub.Unload.Start
+F.Intrinsic.Control.SetErrorHandler("Unload_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+F.ODBC.Connection!con.Close
+F.Intrinsic.Control.End
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Unload_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3899_Default_Inspection.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+Program.Sub.Unload.End
+
+Program.Sub.CheckRequiresInspection.Start
+F.Intrinsic.Control.SetErrorHandler("CheckRequiresInspection_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sPart.Declare(String)
+V.Local.sRev.Declare(String)
+V.Local.sLoc.Declare(String)
+V.Local.sSQL.Declare(String)
+
+V.Local.sPart.Set(V.Passed.000007)
+V.Local.sRev.Set(V.Passed.000008)
+V.Local.sLoc.Set(V.Passed.000009)
+
+F.Intrinsic.String.GSSPartString(V.Local.sPart,V.Local.sRev,V.Local.sPart)
+F.Intrinsic.String.Build("SELECT REQUIRES_INSP FROM INVENTORY_MST2 WHERE PART = '{0}' AND LOCATION = '{1}'",V.Local.sPart,V.Local.sLoc,V.Local.sSQL)
+F.ODBC.Connection!con.OpenLocalRecordsetRO("rst",V.Local.sSQL)
+
+F.Intrinsic.Control.If(V.ODBC.con!rst.EOF,<>,True)
+	F.Intrinsic.Control.If(V.ODBC.con!rst.FieldValTrim!REQUIRES_INSP,=,"Y")
+		F.ODBC.con!rst.Close
+	F.Intrinsic.Control.Else
+		F.ODBC.con!rst.Close
+		F.Intrinsic.String.Build("UPDATE INVENTORY_MST2 SET REQUIRES_INSP = 'Y' WHERE PART = '{0}' AND LOCATION = '{1}'",V.Local.sPart,V.Local.sLoc,V.Local.sSQL)
+		F.ODBC.Connection!con.Execute(V.Local.sSQL)
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("CheckRequiresInspection_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3899_Default_Inspection.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Unload)
+Function.Intrinsic.Control.EndIf
+
+Program.Sub.CheckRequiresInspection.End
+
+Program.Sub.Comments.Start
+${$0$}$GCG_Default_Inspection$}$BCC$}$7/31/2015 12:40:11 PM
+Program.Sub.Comments.End
+
